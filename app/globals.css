@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --brand-dark: #1f3524;
+  --brand-cream: #f8f4ec;
+}
+
+body {
+  @apply bg-sand-50 text-forest-900;
+}
+
+::selection {
+  @apply bg-forest-200 text-forest-900;
+}
+
+/* Sticky header shadow only after scroll — toggled via JS class in Header.tsx */
+.header-scrolled {
+  @apply shadow-md;
+}
+
+.container-px {
+  @apply px-4 sm:px-6 lg:px-10;
+}
+
+.btn-primary {
+  @apply bg-forest-800 text-sand-50 px-6 py-3 rounded-full font-medium
+         hover:bg-forest-700 transition-colors duration-200;
+}
+
+.btn-secondary {
+  @apply bg-transparent border border-forest-800 text-forest-800 px-6 py-3 rounded-full font-medium
+         hover:bg-forest-800 hover:text-sand-50 transition-colors duration-200;
+}
+
+.card {
+  @apply bg-white rounded-2xl shadow-sm hover:shadow-lg transition-shadow duration-300;
+}
