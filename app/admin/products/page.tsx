@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 import ProductForm, { ProductFormValues } from "@/components/admin/ProductForm";
-import { Pencil, Trash2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus, AlertTriangle } from "lucide-react";
+
+const LOW_STOCK_THRESHOLD = 5;
 
 export default function AdminProductsPage() {
   const [products, setProducts] = useState<ProductFormValues[]>([]);
@@ -33,6 +35,9 @@ export default function AdminProductsPage() {
     }
   };
 
+  const lowStockProducts = products.filter((p) => p.stock > 0 && p.stock <= LOW_STOCK_THRESHOLD);
+  const outOfStockProducts = products.filter((p) => p.stock === 0);
+
   return (
     <div>
       <div className="flex items-center justify-between mb-8">
@@ -43,6 +48,26 @@ export default function AdminProductsPage() {
           </button>
         )}
       </div>
+
+      {(lowStockProducts.length > 0 || outOfStockProducts.length > 0) && editing === undefined && (
+        <div className="bg-gold-500/10 border border-gold-500/40 rounded-xl p-4 mb-6 flex items-start gap-3">
+          <AlertTriangle className="text-gold-500 shrink-0 mt-0.5" size={20} />
+          <div className="text-sm text-forest-700">
+            {lowStockProducts.length > 0 && (
+              <p className="mb-1">
+                <span className="font-medium">{lowStockProducts.length} product{lowStockProducts.length > 1 ? "s" : ""} running low</span>
+                {" "}(≤ {LOW_STOCK_THRESHOLD} left): {lowStockProducts.map((p) => `${p.name} (${p.stock})`).join(", ")}
+              </p>
+            )}
+            {outOfStockProducts.length > 0 && (
+              <p>
+                <span className="font-medium">{outOfStockProducts.length} product{outOfStockProducts.length > 1 ? "s" : ""} out of stock</span>
+                : {outOfStockProducts.map((p) => p.name).join(", ")}
+              </p>
+            )}
+          </div>
+        </div>
+      )}
 
       {editing !== undefined && (
         <div className="mb-8">
@@ -80,7 +105,17 @@ export default function AdminProductsPage() {
                   <td className="p-4">{p.category}</td>
                   <td className="p-4">Rs. {p.price.toLocaleString()}</td>
                   <td className="p-4">{p.discountPercent}%</td>
-                  <td className="p-4">{p.stock}</td>
+                  <td className="p-4">
+                    {p.stock === 0 ? (
+                      <span className="text-red-500 font-medium">Out of stock</span>
+                    ) : p.stock <= LOW_STOCK_THRESHOLD ? (
+                      <span className="text-gold-500 font-medium flex items-center gap-1">
+                        <AlertTriangle size={14} /> {p.stock} left
+                      </span>
+                    ) : (
+                      p.stock
+                    )}
+                  </td>
                   <td className="p-4">{p.isHotDeal ? "Yes" : "No"}</td>
                   <td className="p-4">
                     <div className="flex gap-3">

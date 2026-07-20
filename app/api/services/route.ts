@@ -8,7 +8,7 @@ import { authOptions } from "@/lib/auth";
 export async function POST(req: NextRequest) {
   await connectDB();
   const body = await req.json();
-  const request = await ServiceRequest.create(body);
+  const request = await (ServiceRequest as any).create(body);
   return NextResponse.json({ request }, { status: 201 });
 }
 
@@ -20,6 +20,6 @@ export async function GET() {
   }
 
   await connectDB();
-  const requests = await ServiceRequest.find().sort({ createdAt: -1 }).lean();
+  const requests = await (ServiceRequest as any).find().sort({ createdAt: -1 }).lean();
   return NextResponse.json({ requests });
 }

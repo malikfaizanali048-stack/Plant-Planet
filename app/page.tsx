@@ -6,7 +6,7 @@ import { ProductGrid } from "@/components/products/ProductGrid";
 
 async function getFeatured() {
   await connectDB();
-  const products = await Product.find().sort({ createdAt: -1 }).limit(8).lean();
+  const products = await (Product as any).find().sort({ createdAt: -1 }).limit(8).lean();
   return JSON.parse(JSON.stringify(products));
 }
 
@@ -58,7 +58,7 @@ export default async function HomePage() {
           {CATEGORIES.map((cat) => (
             <Link
               key={cat.name}
-              href={`/shop?category=${encodeURIComponent(cat.name.split(" ")[0])}`}
+              href={`/shop?category=${encodeURIComponent(cat.name)}`}
               className="group relative aspect-[4/5] rounded-2xl overflow-hidden"
             >
               <Image

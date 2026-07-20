@@ -11,8 +11,8 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
 
   const isObjectId = mongoose.Types.ObjectId.isValid(params.id);
   const product = isObjectId
-    ? await Product.findById(params.id).lean()
-    : await Product.findOne({ slug: params.id }).lean();
+    ? await (Product as any).findById(params.id).lean()
+    : await (Product as any).findOne({ slug: params.id }).lean();
 
   if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
   return NextResponse.json({ product });
@@ -27,7 +27,7 @@ export async function PUT(req: NextRequest, { params }: { params: { id: string }
 
   await connectDB();
   const body = await req.json();
-  const product = await Product.findByIdAndUpdate(params.id, body, { new: true });
+  const product = await (Product as any).findByIdAndUpdate(params.id, body, { new: true });
   if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
   return NextResponse.json({ product });
 }
@@ -40,7 +40,7 @@ export async function DELETE(req: NextRequest, { params }: { params: { id: strin
   }
 
   await connectDB();
-  const product = await Product.findByIdAndDelete(params.id);
+  const product = await (Product as any).findByIdAndDelete(params.id);
   if (!product) return NextResponse.json({ error: "Product not found" }, { status: 404 });
   return NextResponse.json({ success: true });
 }

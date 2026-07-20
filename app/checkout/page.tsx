@@ -2,20 +2,14 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { loadStripe } from "@stripe/stripe-js";
-import { Elements } from "@stripe/react-stripe-js";
 import { useCart } from "@/context/CartContext";
-import StripeCardForm from "@/components/cart/StripeCardForm";
+import BankTransferForm from "@/components/cart/BankTransfer";
 import toast from "react-hot-toast";
-
-const stripePromise = process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY
-  ? loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY)
-  : null;
 
 export default function CheckoutPage() {
   const { items, total, clearCart } = useCart();
   const router = useRouter();
-  const deliveryCharge = total < 5000 ? 500 : 0;
+  const deliveryCharge = total > 0 && total < 5000 ? 500 : 0;
   const grandTotal = total + deliveryCharge;
 
   const [form, setForm] = useState({
@@ -25,12 +19,15 @@ export default function CheckoutPage() {
     address: "",
     city: "",
   });
-  const [paymentMethod, setPaymentMethod] = useState<"COD" | "Card">("COD");
+  const [paymentMethod, setPaymentMethod] = useState<"COD" | "Bank Transfer">("COD");
+  const [refNo, setRefNo] = useState("");
+  const [slipUrl, setSlipUrl] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
   const formValid = Object.values(form).every((v) => v.trim().length > 0);
+  const bankDetailsValid = paymentMethod === "COD" || (refNo.trim().length > 0 && slipUrl.length > 0);
 
-  const placeOrder = async (stripePaymentIntentId?: string) => {
+  const placeOrder = async () => {
     setSubmitting(true);
     try {
       const res = await fetch("/api/orders", {
@@ -40,13 +37,15 @@ export default function CheckoutPage() {
           items,
           ...form,
           paymentMethod,
-          stripePaymentIntentId,
+          transactionRefNo: paymentMethod === "Bank Transfer" ? refNo : undefined,
+          paymentSlip: paymentMethod === "Bank Transfer" ? slipUrl : undefined,
         }),
       });
-      if (!res.ok) throw new Error("Failed to place order");
-      const { order } = await res.json();
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || "Failed to place order");
+      const { order } = data;
       clearCart();
-      router.push(`/order-confirmation?id=${order._id}`);
+      router.push(`/order-confirmation?id=${order._id}&phone=${encodeURIComponent(form.phone)}`);
     } catch (err: any) {
       toast.error(err.message || "Something went wrong");
     } finally {
@@ -113,25 +112,15 @@ export default function CheckoutPage() {
               Cash on Delivery
             </button>
             <button
-              onClick={() => setPaymentMethod("Card")}
-              className={`px-5 py-3 rounded-xl border ${paymentMethod === "Card" ? "border-forest-800 bg-forest-50" : "border-sand-200"}`}
+              onClick={() => setPaymentMethod("Bank Transfer")}
+              className={`px-5 py-3 rounded-xl border ${paymentMethod === "Bank Transfer" ? "border-forest-800 bg-forest-50" : "border-sand-200"}`}
             >
-              Pay by Card
+              Bank Transfer
             </button>
           </div>
 
-          {paymentMethod === "Card" && stripePromise && formValid && (
-            <div className="pt-2">
-              <Elements stripe={stripePromise}>
-                <StripeCardForm amount={grandTotal} onPaid={(id) => placeOrder(id)} />
-              </Elements>
-            </div>
-          )}
-          {paymentMethod === "Card" && !stripePromise && (
-            <p className="text-sm text-red-500">
-              Card payments aren&apos;t configured yet — add your Stripe keys to .env.local, or choose
-              Cash on Delivery.
-            </p>
+          {paymentMethod === "Bank Transfer" && (
+            <BankTransferForm refNo={refNo} setRefNo={setRefNo} slipUrl={slipUrl} setSlipUrl={setSlipUrl} />
           )}
         </div>
       </div>
@@ -153,15 +142,13 @@ export default function CheckoutPage() {
           <span>Rs. {grandTotal.toLocaleString()}</span>
         </div>
 
-        {paymentMethod === "COD" && (
-          <button
-            onClick={() => placeOrder()}
-            disabled={!formValid || submitting}
-            className="btn-primary w-full disabled:opacity-50"
-          >
-            {submitting ? "Placing order..." : "Place Order (COD)"}
-          </button>
-        )}
+        <button
+          onClick={placeOrder}
+          disabled={!formValid || !bankDetailsValid || submitting}
+          className="btn-primary w-full disabled:opacity-50"
+        >
+          {submitting ? "Placing order..." : `Place Order (${paymentMethod})`}
+        </button>
       </div>
     </div>
   );

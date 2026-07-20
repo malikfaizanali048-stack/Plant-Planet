@@ -1,0 +1,12 @@
+<svg width="120" height="120" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+  <!-- sprout -->
+  <path d="M60 26 C50 10, 35 5, 25 12 C32 22, 46 27, 60 26 Z" fill="#4a7a52"/>
+  <path d="M60 26 C70 10, 85 5, 95 12 C88 22, 74 27, 60 26 Z" fill="#4a7a52"/>
+  <line x1="60" y1="26" x2="60" y2="40" stroke="#c2952f" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- globe -->
+  <circle cx="60" cy="70" r="38" fill="#1f3524"/>
+  <path d="M22 70 Q60 46 98 70" stroke="#f8f4ec" stroke-width="2" fill="none" opacity="0.4"/>
+  <path d="M22 70 Q60 94 98 70" stroke="#f8f4ec" stroke-width="2" fill="none" opacity="0.4"/>
+  <line x1="60" y1="32" x2="60" y2="108" stroke="#f8f4ec" stroke-width="2" opacity="0.3"/>
+</svg>

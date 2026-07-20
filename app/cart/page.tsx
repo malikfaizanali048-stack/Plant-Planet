@@ -34,6 +34,9 @@ export default function CartPage() {
             <div className="flex-1">
               <h3 className="font-medium text-forest-800">{item.name}</h3>
               <p className="text-forest-500 text-sm">Rs. {item.price.toLocaleString()}</p>
+              {item.qty >= item.stock && (
+                <p className="text-xs text-gold-500 mt-1">Max stock reached ({item.stock} available)</p>
+              )}
             </div>
 
             <div className="flex items-center border border-sand-200 rounded-full">
@@ -41,7 +44,11 @@ export default function CartPage() {
                 <Minus size={14} />
               </button>
               <span className="w-6 text-center text-sm">{item.qty}</span>
-              <button onClick={() => updateQty(item.productId, item.qty + 1)} className="p-2">
+              <button
+                onClick={() => updateQty(item.productId, item.qty + 1)}
+                disabled={item.qty >= item.stock}
+                className="p-2 disabled:opacity-30"
+              >
                 <Plus size={14} />
               </button>
             </div>

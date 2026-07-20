@@ -15,12 +15,12 @@ export default function ShopPage() {
   const [category, setCategory] = useState("all");
   const [maxPrice, setMaxPrice] = useState(0);
 
-  // Read category from URL on load (e.g. /shop?category=Indoor+Plants)
+  // Read category and search from URL on load (e.g. /shop?category=Fruit+Trees or /shop?search=mango)
   useEffect(() => {
     const urlCategory = searchParams.get("category");
-    if (urlCategory) {
-      setCategory(urlCategory);
-    }
+    const urlSearch = searchParams.get("search");
+    if (urlCategory) setCategory(urlCategory);
+    if (urlSearch) setSearch(urlSearch);
   }, [searchParams]);
 
   useEffect(() => {

@@ -6,7 +6,7 @@ import AddToCartButton from "@/components/products/AddToCartButton";
 
 async function getProduct(slug: string) {
   await connectDB();
-  const product = await Product.findOne({ slug }).lean();
+  const product = await (Product as any).findOne({ slug }).lean();
   return product ? JSON.parse(JSON.stringify(product)) : null;
 }
 
@@ -53,6 +53,8 @@ export default async function ProductDetailPage({ params }: { params: { id: stri
           name={product.name}
           price={finalPrice}
           image={product.images[0] || ""}
+          stock={product.stock}
+          category={product.category}
         />
 
         <p className="text-sm text-forest-400 mt-4">

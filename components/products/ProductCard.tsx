@@ -14,6 +14,7 @@ export interface ProductCardData {
   discountPercent: number;
   images: string[];
   category: string;
+  stock: number;
   isHotDeal?: boolean;
 }
 
@@ -23,12 +24,18 @@ export default function ProductCard({ product }: { product: ProductCardData }) {
 
   const handleAdd = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (product.stock <= 0) {
+      toast.error("Out of stock");
+      return;
+    }
     addItem({
       productId: product._id,
       name: product.name,
       price: finalPrice,
       image: product.images[0] || "",
       qty: 1,
+      stock: product.stock,
+      category: product.category,
     });
     toast.success(`${product.name} added to cart`);
   };

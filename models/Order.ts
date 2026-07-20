@@ -3,6 +3,7 @@ import { Schema, models, model } from "mongoose";
 export interface IOrderItem {
   productId: string;
   name: string;
+  category: string;
   price: number;
   qty: number;
   image: string;
@@ -16,8 +17,10 @@ export interface IOrder {
   phone: string;
   address: string;
   city: string;
-  paymentMethod: "COD" | "Card";
-  stripePaymentIntentId?: string;
+  paymentMethod: "COD" | "Bank Transfer";
+  transactionRefNo?: string;
+  paymentSlip?: string;
+  paymentVerified: boolean;
   subtotal: number;
   deliveryCharge: number;
   total: number;
@@ -29,6 +32,7 @@ const OrderItemSchema = new Schema<IOrderItem>(
   {
     productId: { type: String, required: true },
     name: { type: String, required: true },
+    category: { type: String, default: "" },
     price: { type: Number, required: true },
     qty: { type: Number, required: true },
     image: { type: String, default: "" },
@@ -44,8 +48,10 @@ const OrderSchema = new Schema<IOrder>(
     phone: { type: String, required: true },
     address: { type: String, required: true },
     city: { type: String, required: true },
-    paymentMethod: { type: String, enum: ["COD", "Card"], required: true },
-    stripePaymentIntentId: { type: String },
+    paymentMethod: { type: String, enum: ["COD", "Bank Transfer"], required: true },
+    transactionRefNo: { type: String },
+    paymentSlip: { type: String },
+    paymentVerified: { type: Boolean, default: false },
     subtotal: { type: Number, required: true },
     deliveryCharge: { type: Number, required: true },
     total: { type: Number, required: true },

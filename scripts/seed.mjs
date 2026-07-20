@@ -9,8 +9,10 @@ dotenv.config({ path: ".env.local" });
 
 const ProductSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
 const UserSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
+const WorkSchema = new mongoose.Schema({}, { strict: false, timestamps: true });
 const Product = mongoose.models.Product || mongoose.model("Product", ProductSchema);
 const User = mongoose.models.User || mongoose.model("User", UserSchema);
+const Work = mongoose.models.Work || mongoose.model("Work", WorkSchema);
 
 const products = [
   {
@@ -95,6 +97,31 @@ const products = [
   },
 ];
 
+// Dummy placeholder media for the "Our Work" section — replace these via the
+// admin panel (/admin/work) with real project photos/videos once you have them.
+// The two videos are Google's public Creative-Commons sample clips, used only
+// as stand-ins so the section isn't empty on first launch.
+const workItems = [
+  {
+    title: "Residential Garden Makeover — Sample Project",
+    description: "Placeholder video — replace with real before/after footage from the admin panel.",
+    mediaType: "video",
+    mediaUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/BigBuckBunny.mp4",
+  },
+  {
+    title: "Commercial Landscape Installation — Sample Project",
+    description: "Placeholder video — replace with real project footage from the admin panel.",
+    mediaType: "video",
+    mediaUrl: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ElephantsDream.mp4",
+  },
+  {
+    title: "Indoor Plant-Scaping — Sample Project",
+    description: "Placeholder image — replace with a real project photo from the admin panel.",
+    mediaType: "image",
+    mediaUrl: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=900",
+  },
+];
+
 async function seed() {
   if (!process.env.MONGODB_URI) {
     console.error("Missing MONGODB_URI in .env.local");
@@ -112,6 +139,10 @@ async function seed() {
     }))
   );
   console.log(`Seeded ${inserted.length} products`);
+
+  await Work.deleteMany({});
+  const insertedWork = await Work.insertMany(workItems);
+  console.log(`Seeded ${insertedWork.length} "Our Work" placeholder items`);
 
   const adminEmail = (process.env.ADMIN_EMAIL || "admin@plantplanet.pk").toLowerCase();
   const adminPassword = process.env.ADMIN_PASSWORD || "changeme123";

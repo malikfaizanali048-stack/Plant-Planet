@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useState, ReactNode } from "react";
+import toast from "react-hot-toast";
 
 export interface CartItem {
   productId: string;
@@ -8,6 +9,8 @@ export interface CartItem {
   price: number;
   image: string;
   qty: number;
+  stock: number;
+  category: string;
 }
 
 interface CartContextType {
@@ -27,12 +30,24 @@ export function CartProvider({ children }: { children: ReactNode }) {
   const addItem = (item: CartItem) => {
     setItems((prev) => {
       const existing = prev.find((i) => i.productId === item.productId);
+      const stock = item.stock ?? Infinity;
+
       if (existing) {
+        const desiredQty = existing.qty + item.qty;
+        const clampedQty = Math.min(desiredQty, stock);
+        if (desiredQty > stock) {
+          toast.error(`Only ${stock} in stock — cart capped at ${clampedQty}`);
+        }
         return prev.map((i) =>
-          i.productId === item.productId ? { ...i, qty: i.qty + item.qty } : i
+          i.productId === item.productId ? { ...i, qty: clampedQty, stock } : i
         );
       }
-      return [...prev, item];
+
+      const clampedQty = Math.min(item.qty, stock);
+      if (item.qty > stock) {
+        toast.error(`Only ${stock} in stock — added ${clampedQty} instead`);
+      }
+      return [...prev, { ...item, qty: clampedQty }];
     });
   };
 
@@ -42,7 +57,15 @@ export function CartProvider({ children }: { children: ReactNode }) {
 
   const updateQty = (productId: string, qty: number) => {
     setItems((prev) =>
-      prev.map((i) => (i.productId === productId ? { ...i, qty: Math.max(1, qty) } : i))
+      prev.map((i) => {
+        if (i.productId !== productId) return i;
+        const stock = i.stock ?? Infinity;
+        const clamped = Math.max(1, Math.min(qty, stock));
+        if (qty > stock) {
+          toast.error(`Only ${stock} in stock`);
+        }
+        return { ...i, qty: clamped };
+      })
     );
   };
 

@@ -10,6 +10,19 @@ const config: Config = {
     extend: {
       colors: {
         // Primary brand green (dark, professional — not neon)
+
+        parrot: {
+          50: "#f0fdf0",
+          100: "#dcfce0",
+          200: "#b8f5bf",
+          300: "#7ee08a",
+          400: "#4cbb17",
+          500: "#3fa010",
+          600: "#33830d",
+          700: "#28660a",
+          800: "#1f5008",
+          900: "#173a06",
+        },
         forest: {
           50: "#f1f6f2",
           100: "#dfe9e0",

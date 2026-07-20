@@ -3,13 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { signOut } from "next-auth/react";
-import { LayoutDashboard, Package, ShoppingBag, ClipboardList, LogOut } from "lucide-react";
+import { LayoutDashboard, Package, ShoppingBag, ClipboardList, Images, LogOut } from "lucide-react";
 
 const LINKS = [
   { href: "/admin/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/admin/products", label: "Products", icon: Package },
   { href: "/admin/orders", label: "Orders", icon: ShoppingBag },
   { href: "/admin/services", label: "Service Requests", icon: ClipboardList },
+  { href: "/admin/work", label: "Our Work", icon: Images },
 ];
 
 export default function AdminSidebar() {

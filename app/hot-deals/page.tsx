@@ -4,7 +4,7 @@ import { ProductGrid } from "@/components/products/ProductGrid";
 
 async function getHotDeals() {
   await connectDB();
-  const products = await Product.find({ isHotDeal: true }).sort({ createdAt: -1 }).lean();
+  const products = await (Product as any).find({ isHotDeal: true }).sort({ createdAt: -1 }).lean();
   return JSON.parse(JSON.stringify(products));
 }
 

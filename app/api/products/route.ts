@@ -32,7 +32,7 @@ export async function GET(req: NextRequest) {
     if (maxPrice) query.price.$lte = Number(maxPrice);
   }
 
-  const products = await Product.find(query).sort({ createdAt: -1 }).lean();
+  const products = await (Product as any).find(query).sort({ createdAt: -1 }).lean();
   return NextResponse.json({ products });
 }
 
@@ -52,6 +52,6 @@ export async function POST(req: NextRequest) {
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/(^-|-$)/g, "");
 
-  const product = await Product.create({ ...body, slug: `${slug}-${Date.now().toString(36)}` });
+  const product = await (Product as any).create({ ...body, slug: `${slug}-${Date.now().toString(36)}` });
   return NextResponse.json({ product }, { status: 201 });
 }
