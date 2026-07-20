@@ -1,26 +1,24 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import SearchFilterBar from "@/components/products/SearchFilterBar";
 import { ProductGrid, ProductGridSkeleton } from "@/components/products/ProductGrid";
 import { ProductCardData } from "@/components/products/ProductCard";
 
-export default function ShopPage() {
+function ShopContent() {
   const searchParams = useSearchParams();
+  const initialCategory = searchParams.get("category") || "all";
 
   const [products, setProducts] = useState<ProductCardData[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("all");
+  const [category, setCategory] = useState(initialCategory);
   const [maxPrice, setMaxPrice] = useState(0);
 
-  // Read category and search from URL on load (e.g. /shop?category=Fruit+Trees or /shop?search=mango)
+  // Keep in sync if the ?category= link changes while already on /shop
   useEffect(() => {
-    const urlCategory = searchParams.get("category");
-    const urlSearch = searchParams.get("search");
-    if (urlCategory) setCategory(urlCategory);
-    if (urlSearch) setSearch(urlSearch);
+    setCategory(searchParams.get("category") || "all");
   }, [searchParams]);
 
   useEffect(() => {
@@ -67,5 +65,13 @@ export default function ShopPage() {
 
       {loading ? <ProductGridSkeleton /> : <ProductGrid products={products} />}
     </div>
+  );
+}
+
+export default function ShopPage() {
+  return (
+    <Suspense fallback={<div className="container-px mx-auto py-10"><ProductGridSkeleton /></div>}>
+      <ShopContent />
+    </Suspense>
   );
 }
