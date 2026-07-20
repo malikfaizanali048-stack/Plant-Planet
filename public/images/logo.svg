@@ -1,0 +1,16 @@
+<svg width="560" height="140" viewBox="0 0 560 140" xmlns="http://www.w3.org/2000/svg">
+  <text x="10" y="95" font-family="Arial, Helvetica, sans-serif" font-size="60" font-weight="700" fill="#1f3524">plant</text>
+
+  <!-- sprout -->
+  <path d="M225 26 C215 10, 200 5, 190 12 C197 22, 211 27, 225 26 Z" fill="#4a7a52"/>
+  <path d="M225 26 C235 10, 250 5, 260 12 C253 22, 239 27, 225 26 Z" fill="#4a7a52"/>
+  <line x1="225" y1="26" x2="225" y2="40" stroke="#c2952f" stroke-width="4" stroke-linecap="round"/>
+
+  <!-- globe -->
+  <circle cx="225" cy="70" r="38" fill="#1f3524"/>
+  <path d="M187 70 Q225 46 263 70" stroke="#f8f4ec" stroke-width="2" fill="none" opacity="0.4"/>
+  <path d="M187 70 Q225 94 263 70" stroke="#f8f4ec" stroke-width="2" fill="none" opacity="0.4"/>
+  <line x1="225" y1="32" x2="225" y2="108" stroke="#f8f4ec" stroke-width="2" opacity="0.3"/>
+
+  <text x="295" y="95" font-family="Arial, Helvetica, sans-serif" font-size="60" font-weight="700" fill="#1f3524">planet</text>
+</svg>
