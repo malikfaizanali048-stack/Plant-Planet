@@ -4,6 +4,8 @@ import { notFound } from "next/navigation";
 import Image from "next/image";
 import AddToCartButton from "@/components/products/AddToCartButton";
 
+export const dynamic = "force-dynamic";
+
 async function getProduct(slug: string) {
   await connectDB();
   const product = await (Product as any).findOne({ slug }).lean();

@@ -2,6 +2,8 @@ import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { ProductGrid } from "@/components/products/ProductGrid";
 
+export const dynamic = "force-dynamic";
+
 async function getHotDeals() {
   await connectDB();
   const products = await (Product as any).find({ isHotDeal: true }).sort({ createdAt: -1 }).lean();

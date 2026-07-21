@@ -4,6 +4,8 @@ import Order from "@/models/Order";
 import ServiceRequest from "@/models/ServiceRequest";
 import Link from "next/link";
 
+export const dynamic = "force-dynamic";
+
 async function getStats() {
   await connectDB();
   const [productCount, orderCount, pendingOrders, serviceCount] = await Promise.all([

@@ -4,6 +4,10 @@ import { connectDB } from "@/lib/mongodb";
 import Product from "@/models/Product";
 import { ProductGrid } from "@/components/products/ProductGrid";
 
+// Always fetch live data — without this, Vercel caches the page at build/deploy
+// time and deleted/added products won't show up until the next deployment.
+export const dynamic = "force-dynamic";
+
 async function getFeatured() {
   await connectDB();
   const products = await (Product as any).find().sort({ createdAt: -1 }).limit(8).lean();
@@ -11,10 +15,10 @@ async function getFeatured() {
 }
 
 const CATEGORIES = [
-  { name: "Indoor Plants", image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400" },
-  { name: "Outdoor Plants", image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400" },
-  { name: "Fruit Trees", image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400" },
-  { name: "Herbs & Seeds", image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=400" },
+  { name: "Indoor Plants", param: "Indoor", image: "https://images.unsplash.com/photo-1614594975525-e45190c55d0b?w=400" },
+  { name: "Outdoor Plants", param: "Outdoor", image: "https://images.unsplash.com/photo-1416879595882-3373a0480b5b?w=400" },
+  { name: "Fruit Trees", param: "Fruit Trees", image: "https://images.unsplash.com/photo-1560806887-1e4cd0b6cbd6?w=400" },
+  { name: "Herbs & Seeds", param: "Herbs & Seeds", image: "https://images.unsplash.com/photo-1466692476868-aef1dfb1e735?w=400" },
 ];
 
 export default async function HomePage() {
@@ -58,7 +62,7 @@ export default async function HomePage() {
           {CATEGORIES.map((cat) => (
             <Link
               key={cat.name}
-              href={`/shop?category=${encodeURIComponent(cat.name)}`}
+              href={`/shop?category=${encodeURIComponent(cat.param)}`}
               className="group relative aspect-[4/5] rounded-2xl overflow-hidden"
             >
               <Image

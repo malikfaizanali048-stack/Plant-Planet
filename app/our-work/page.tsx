@@ -2,6 +2,8 @@ import { connectDB } from "@/lib/mongodb";
 import Work from "@/models/Work";
 import Image from "next/image";
 
+export const dynamic = "force-dynamic";
+
 async function getWork() {
   await connectDB();
   const items = await (Work as any).find().sort({ createdAt: -1 }).lean();

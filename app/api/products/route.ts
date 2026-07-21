@@ -4,6 +4,10 @@ import Product from "@/models/Product";
 import { getServerSession } from "next-auth";
 import { authOptions } from "@/lib/auth";
 
+function escapeRegex(str: string) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
 // GET /api/products?search=&category=&hotDeal=true&minPrice=&maxPrice=
 export async function GET(req: NextRequest) {
   await connectDB();
@@ -21,7 +25,9 @@ export async function GET(req: NextRequest) {
     query.name = { $regex: search, $options: "i" };
   }
   if (category && category !== "all") {
-    query.category = category;
+    // Case-insensitive exact match — protects against casing differences
+    // between how a category was typed/stored and how it's requested here.
+    query.category = { $regex: `^${escapeRegex(category)}$`, $options: "i" };
   }
   if (hotDeal === "true") {
     query.isHotDeal = true;
