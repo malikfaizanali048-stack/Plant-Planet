@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
-import { Upload, Trash2, Plus } from "lucide-react";
+import { Upload, Trash2, Plus, Pencil } from "lucide-react";
 
 interface WorkItem {
   _id: string;
@@ -16,12 +16,14 @@ interface WorkItem {
 export default function AdminWorkPage() {
   const [items, setItems] = useState<WorkItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [adding, setAdding] = useState(false);
+  const [formOpen, setFormOpen] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [mediaType, setMediaType] = useState<"image" | "video">("image");
   const [mediaUrl, setMediaUrl] = useState("");
+  const [urlMode, setUrlMode] = useState(false); // false = direct upload, true = paste URL
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -42,10 +44,22 @@ export default function AdminWorkPage() {
     setDescription("");
     setMediaType("image");
     setMediaUrl("");
-    setAdding(false);
+    setUrlMode(false);
+    setFormOpen(false);
+    setEditingId(null);
   };
 
-  const handleImageUpload = async (file: File) => {
+  const startEdit = (item: WorkItem) => {
+    setEditingId(item._id);
+    setTitle(item.title);
+    setDescription(item.description || "");
+    setMediaType(item.mediaType);
+    setMediaUrl(item.mediaUrl);
+    setUrlMode(item.mediaUrl.startsWith("http")); // uploaded files are data: URIs, links start with http
+    setFormOpen(true);
+  };
+
+  const handleFileUpload = async (file: File) => {
     setUploading(true);
     try {
       const fd = new FormData();
@@ -63,18 +77,22 @@ export default function AdminWorkPage() {
 
   const handleSave = async () => {
     if (!title.trim() || !mediaUrl.trim()) {
-      toast.error(mediaType === "video" ? "Title and video URL are required" : "Title and image are required");
+      toast.error(mediaType === "video" ? "Title and video are required" : "Title and image are required");
       return;
     }
     setSaving(true);
     try {
-      const res = await fetch("/api/work", {
-        method: "POST",
+      const isEditing = !!editingId;
+      const res = await fetch(isEditing ? `/api/work/${editingId}` : "/api/work", {
+        method: isEditing ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ title, description, mediaType, mediaUrl }),
       });
-      if (!res.ok) throw new Error("Failed to save");
-      toast.success("Added to Our Work");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error || "Failed to save");
+      }
+      toast.success(isEditing ? "Updated" : "Added to Our Work");
       resetForm();
       fetchItems();
     } catch (err: any) {
@@ -91,7 +109,8 @@ export default function AdminWorkPage() {
       toast.success("Deleted");
       fetchItems();
     } else {
-      toast.error("Delete failed");
+      const data = await res.json().catch(() => ({}));
+      toast.error(data.error ? `Delete failed: ${data.error}` : `Delete failed (status ${res.status})`);
     }
   };
 
@@ -99,15 +118,17 @@ export default function AdminWorkPage() {
     <div>
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-display text-2xl text-forest-800">Our Work</h1>
-        {!adding && (
-          <button onClick={() => setAdding(true)} className="btn-primary flex items-center gap-2">
+        {!formOpen && (
+          <button onClick={() => setFormOpen(true)} className="btn-primary flex items-center gap-2">
             <Plus size={16} /> Add Item
           </button>
         )}
       </div>
 
-      {adding && (
+      {formOpen && (
         <div className="card p-6 space-y-4 mb-8">
+          <h2 className="font-medium text-forest-800">{editingId ? "Edit Item" : "New Item"}</h2>
+
           <input
             placeholder="Title (e.g. 'Residential Garden Makeover — DHA Lahore')"
             value={title}
@@ -124,57 +145,91 @@ export default function AdminWorkPage() {
 
           <div className="flex gap-3">
             <button
-              onClick={() => { setMediaType("image"); setMediaUrl(""); }}
+              onClick={() => { setMediaType("image"); setMediaUrl(""); setUrlMode(false); }}
               className={`px-4 py-2 rounded-xl border text-sm ${mediaType === "image" ? "border-forest-800 bg-forest-50" : "border-sand-200"}`}
             >
               Image
             </button>
             <button
-              onClick={() => { setMediaType("video"); setMediaUrl(""); }}
+              onClick={() => { setMediaType("video"); setMediaUrl(""); setUrlMode(false); }}
               className={`px-4 py-2 rounded-xl border text-sm ${mediaType === "video" ? "border-forest-800 bg-forest-50" : "border-sand-200"}`}
             >
               Video
             </button>
           </div>
 
-          {mediaType === "image" ? (
+          {/* Toggle between direct upload and pasting a URL */}
+          <div className="flex gap-2 text-sm">
+            <button
+              onClick={() => { setUrlMode(false); setMediaUrl(""); }}
+              className={`px-3 py-1.5 rounded-full ${!urlMode ? "bg-forest-800 text-white" : "bg-sand-100 text-forest-600"}`}
+            >
+              Upload File
+            </button>
+            <button
+              onClick={() => { setUrlMode(true); setMediaUrl(""); }}
+              className={`px-3 py-1.5 rounded-full ${urlMode ? "bg-forest-800 text-white" : "bg-sand-100 text-forest-600"}`}
+            >
+              Paste URL Instead
+            </button>
+          </div>
+
+          {!urlMode ? (
             <div>
               <label className="flex items-center gap-3 border border-dashed border-sand-300 rounded-xl px-4 py-4 cursor-pointer hover:bg-sand-50 w-fit">
                 <Upload size={16} className="text-forest-400" />
                 <span className="text-sm text-forest-500">
-                  {uploading ? "Uploading..." : mediaUrl ? "Image uploaded — click to replace" : "Upload image"}
+                  {uploading
+                    ? "Uploading..."
+                    : mediaUrl
+                    ? `${mediaType === "video" ? "Video" : "Image"} uploaded — click to replace`
+                    : `Upload ${mediaType === "video" ? "video (max 3MB, short clips only)" : "image (max 4MB)"}`}
                 </span>
                 <input
                   type="file"
-                  accept="image/*"
+                  accept={mediaType === "video" ? "video/*" : "image/*"}
                   className="hidden"
-                  onChange={(e) => e.target.files?.[0] && handleImageUpload(e.target.files[0])}
+                  onChange={(e) => e.target.files?.[0] && handleFileUpload(e.target.files[0])}
                 />
               </label>
-              {mediaUrl && (
+
+              {mediaUrl && mediaType === "image" && (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={mediaUrl} alt="" className="mt-3 w-32 h-32 object-cover rounded-xl" />
+              )}
+              {mediaUrl && mediaType === "video" && (
+                <video src={mediaUrl} controls className="mt-3 w-48 rounded-xl" />
+              )}
+
+              {mediaType === "video" && (
+                <p className="text-xs text-forest-400 mt-2">
+                  Videos must stay under 3MB — keep clips short and compressed. For longer or
+                  higher-quality videos, use &quot;Paste URL Instead&quot; with a real direct file
+                  link (not a Google Drive share link — those don&apos;t play directly).
+                </p>
               )}
             </div>
           ) : (
             <div>
               <input
-                placeholder="Video URL (e.g. a direct .mp4 link)"
+                placeholder={mediaType === "video" ? "Direct video URL (e.g. a .mp4 link)" : "Image URL"}
                 value={mediaUrl}
                 onChange={(e) => setMediaUrl(e.target.value)}
                 className="w-full border border-sand-200 rounded-xl px-4 py-3 outline-none"
               />
-              <p className="text-xs text-forest-400 mt-2">
-                Paste a direct video link. Large video files should be hosted elsewhere (e.g.
-                YouTube unlisted + direct file, or a cloud storage link) rather than uploaded
-                here — this form doesn&apos;t support uploading video files directly.
-              </p>
+              {mediaType === "video" && (
+                <p className="text-xs text-forest-400 mt-2">
+                  Must be a direct file link that plays on its own (right-click → "Copy video
+                  address" works on most hosts). Google Drive share links won&apos;t work — Drive
+                  serves a viewer page, not the raw file.
+                </p>
+              )}
             </div>
           )}
 
           <div className="flex gap-3">
             <button onClick={handleSave} disabled={saving} className="btn-primary">
-              {saving ? "Saving..." : "Save"}
+              {saving ? "Saving..." : editingId ? "Save Changes" : "Add Item"}
             </button>
             <button onClick={resetForm} className="btn-secondary">
               Cancel
@@ -202,9 +257,14 @@ export default function AdminWorkPage() {
                   <h3 className="font-medium text-forest-800 text-sm">{item.title}</h3>
                   <span className="text-xs text-forest-400 capitalize">{item.mediaType}</span>
                 </div>
-                <button onClick={() => handleDelete(item._id)} className="text-red-400 hover:text-red-600 shrink-0">
-                  <Trash2 size={16} />
-                </button>
+                <div className="flex gap-2 shrink-0">
+                  <button onClick={() => startEdit(item)} className="text-forest-500 hover:text-forest-800">
+                    <Pencil size={16} />
+                  </button>
+                  <button onClick={() => handleDelete(item._id)} className="text-red-400 hover:text-red-600">
+                    <Trash2 size={16} />
+                  </button>
+                </div>
               </div>
             </div>
           ))}
